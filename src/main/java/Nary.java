@@ -41,6 +41,7 @@ public class Nary {
         sc.close();
     }
 
+
     private static void printLine() {
         System.out.println("____________________________________________________________");
     }
