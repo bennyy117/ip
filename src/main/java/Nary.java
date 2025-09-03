@@ -86,3 +86,7 @@ public class Nary {
         System.out.println("____________________________________________________________");
     }
 }
+
+//cmd for I/O files:
+//javac src/main/java/*.java
+//java -cp src/main/java Nary < text-ui-test/input.txt > text-ui-test/output.txt
