@@ -20,19 +20,47 @@ public class Nary {
     }
 
     private static void handleInput(String input) {
-        if (input.equals("bye")) exit();
-        else if (input.equals("list")) printTasks();
-        else if (input.startsWith("mark ")) markTask(input);
-        else if (input.startsWith("unmark ")) unmarkTask(input);
-        else if (input.startsWith("todo ")) addTask(new Todo(input.substring(5)));
-        else if (input.startsWith("deadline ")) {
-            String[] parts = input.substring(9).split(" /by ", 2);
-            addTask(new Deadline(parts[0], parts.length > 1 ? parts[1] : ""));
-        } else if (input.startsWith("event ")) {
-            String[] parts1 = input.substring(6).split(" /from ", 2);
-            String[] parts2 = parts1[1].split(" /to ", 2);
-            addTask(new Event(parts1[0], parts2[0], parts2[1]));
-        } else addTask(new Todo(input));
+        try {
+            if (input.equals("bye")) {
+                exit();
+            } else if (input.equals("list")) {
+                printTasks();
+            } else if (input.startsWith("mark ")) {
+                markTask(input);
+            } else if (input.startsWith("unmark ")) {
+                unmarkTask(input);
+            } else if (input.startsWith("todo")) {
+                String desc = input.length() > 4 ? input.substring(5).trim() : "";
+                if (desc.isEmpty()) {
+                    System.out.println(" NOOO!!! The description of a todo cannot be empty!");
+                } else {
+                    addTask(new Todo(desc));
+                }
+            } else if (input.startsWith("deadline ")) {
+                String[] parts = input.substring(9).split(" /by ", 2);
+                if (parts[0].trim().isEmpty() || parts.length < 2 || parts[1].trim().isEmpty()) {
+                    System.out.println(" NOOO!!! The description or deadline time cannot be empty!");
+                } else {
+                    addTask(new Deadline(parts[0].trim(), parts[1].trim()));
+                }
+            } else if (input.startsWith("event ")) {
+                String[] parts1 = input.substring(6).split(" /from ", 2);
+                if (parts1.length < 2) {
+                    System.out.println(" NOOO!!! Event must have /from and /to!");
+                    return;
+                }
+                String[] parts2 = parts1[1].split(" /to ", 2);
+                if (parts2.length < 2) {
+                    System.out.println(" NOOO!!! Event must have both start and end time!");
+                    return;
+                }
+                addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim()));
+            } else {
+                System.out.println(" NOOO!!! I'm sorry, but I don't know what that means :((");
+            }
+        } catch (Exception e) {
+            System.out.println(" Something went wrong! " + e.getMessage());
+        }
     }
 
     private static void addTask(Task t) {
