@@ -5,12 +5,14 @@ import nary.task.Deadline;
 import nary.task.Event;
 import nary.task.Task;
 import nary.task.Todo;
+import nary.storage.Storage;
 
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Nary {
-    private static ArrayList<Task> tasks = new ArrayList<>();
+    private static final Storage storage = new Storage("data/nary.txt");
+    private static ArrayList<Task> tasks = storage.load();
     private static final Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -71,9 +73,14 @@ public class Nary {
         }
     }
 
+    private static void saveTasks() {
+        storage.save(tasks);
+    }
+
     private static void addTask(Task t) {
         tasks.add(t);
         printAdded(t);
+        saveTasks();
     }
 
     private static void printAdded(Task t) {
@@ -100,6 +107,7 @@ public class Nary {
         try {
             int index = Integer.parseInt(input.split(" ")[1]) - 1;
             tasks.get(index).markAsDone();
+            saveTasks();
             printLine();
             System.out.println(" Nice! I've marked this task as done:");
             System.out.println("   " + tasks.get(index));
@@ -113,6 +121,7 @@ public class Nary {
         try {
             int index = Integer.parseInt(input.split(" ")[1]) - 1;
             tasks.get(index).markAsNotDone();
+            saveTasks();
             printLine();
             System.out.println(" OK, I've marked this task as not done yet:");
             System.out.println("   " + tasks.get(index));
