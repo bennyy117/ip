@@ -59,6 +59,8 @@ public class Nary {
                     throw new NaryException("OOPS!!! Event must have both start and end time.");
                 }
                 addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim()));
+            } else if (input.startsWith("delete ")) {
+                deleteTask(input);
             } else {
                 throw new NaryException("OOPS!!! I'm sorry, but I don't know what that means :-(");
             }
@@ -120,9 +122,33 @@ public class Nary {
         }
     }
 
+    private static void deleteTask(String input) {
+        try {
+            String[] parts = input.split(" ", 2);
+            if (parts.length < 2 || parts[1].trim().isEmpty()) {
+                System.out.println(" Invalid command, please provide index to delete.");
+                return;
+            }
+            int idx = Integer.parseInt(parts[1].trim());
+            if (idx <= 0 || idx > tasks.size()) {
+                System.out.println(" Invalid task: " + idx);
+                return;
+            }
+            Task removed = tasks.remove(idx - 1);
+            printLine();
+            System.out.println(" I've removed this task:");
+            System.out.println("   " + removed);
+            System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
+            printLine();
+
+        } catch (NumberFormatException e) {
+            System.out.println(" That isn't a valid number to delete.");
+        }
+    }
+
     private static void exit() {
         printLine();
-        System.out.println(" Bye. Hope to see you again soon!");
+        System.out.println(" Bye. Hope to see youu again soon!");
         printLine();
         sc.close();
         System.exit(0);
