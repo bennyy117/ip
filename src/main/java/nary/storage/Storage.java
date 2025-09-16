@@ -23,21 +23,21 @@ public class Storage {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] parts = line.split(" \\| ");
+                String[] parts = line.split(" - ");
                 switch (parts[0]) {
                     case "T":
                         Task todo = new Todo(parts[2]);
-                        if (parts[1].equals("1")) todo.markAsDone();
+                        if (parts[1].equals("X")) todo.markAsDone();
                         tasks.add(todo);
                         break;
                     case "D":
                         Task deadline = new Deadline(parts[2], parts[3]);
-                        if (parts[1].equals("1")) deadline.markAsDone();
+                        if (parts[1].equals("X")) deadline.markAsDone();
                         tasks.add(deadline);
                         break;
                     case "E":
                         Task event = new Event(parts[2], parts[3], parts[4]);
-                        if (parts[1].equals("1")) event.markAsDone();
+                        if (parts[1].equals("X")) event.markAsDone();
                         tasks.add(event);
                         break;
                 }

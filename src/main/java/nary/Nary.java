@@ -144,6 +144,7 @@ public class Nary {
                 return;
             }
             Task removed = tasks.remove(idx - 1);
+            saveTasks();
             printLine();
             System.out.println(" I've removed this task:");
             System.out.println("   " + removed);
