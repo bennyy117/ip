@@ -63,6 +63,12 @@ public class Nary {
                 addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim())); // yyyy-MM-dd
             } else if (input.startsWith("delete ")) {
                 deleteTask(input);
+            } else if (input.startsWith("find ")) {
+                String keyword = input.substring(5).trim();
+                if (keyword.isEmpty()) {
+                    throw new NaryException("OOPS!!! The keyword to find cannot be empty.");
+                }
+                findTasks(keyword);
             } else {
                 throw new NaryException("OOPS!!! I'm sorry, but I don't know what that means :-(");
             }
@@ -154,6 +160,26 @@ public class Nary {
         } catch (NumberFormatException e) {
             System.out.println(" That isn't a valid number to delete.");
         }
+    }
+
+    private static void findTasks(String keyword) {
+        printLine();
+        ArrayList<Task> matches = new ArrayList<>();
+        for (int i = 0; i < tasks.size(); i++) {
+            Task t = tasks.get(i);
+            if (t.getDescription().toLowerCase().contains(keyword.toLowerCase())) {
+                matches.add(t);
+            }
+        }
+        if (matches.isEmpty()) {
+            System.out.println(" No matching tasks found!");
+        } else {
+            System.out.println(" Here are the matching tasks in your list:");
+            for (int i = 0; i < matches.size(); i++) {
+                System.out.println(" " + (i + 1) + "." + matches.get(i));
+            }
+        }
+        printLine();
     }
 
     private static void exit() {
