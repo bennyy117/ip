@@ -47,20 +47,20 @@ public class Nary {
                 addTask(new Todo(desc));
             } else if (input.startsWith("deadline ")) {
                 String[] parts = input.substring(9).split(" /by ", 2);
-                if (parts[0].trim().isEmpty() || parts.length < 2 || parts[1].trim().isEmpty()) {
-                    throw new NaryException("OOPS!!! The description or deadline time cannot be empty.");
+                if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
+                    throw new NaryException("OOPS!!! The description or deadline date cannot be empty.");
                 }
-                addTask(new Deadline(parts[0].trim(), parts[1].trim()));
+                addTask(new Deadline(parts[0].trim(), parts[1].trim())); // yyyy-MM-dd
             } else if (input.startsWith("event ")) {
                 String[] parts1 = input.substring(6).split(" /from ", 2);
                 if (parts1.length < 2) {
-                    throw new NaryException("OOPS!!! Event must have /from and /to.");
+                    throw new NaryException("OOPS!!! Event must have from and to dates.");
                 }
                 String[] parts2 = parts1[1].split(" /to ", 2);
                 if (parts2.length < 2) {
-                    throw new NaryException("OOPS!!! Event must have both start and end time.");
+                    throw new NaryException("OOPS!!! Event must have both start and end dates.");
                 }
-                addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim()));
+                addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim())); // yyyy-MM-dd
             } else if (input.startsWith("delete ")) {
                 deleteTask(input);
             } else {
@@ -173,3 +173,9 @@ public class Nary {
 //cmd for I/O files:
 //javac src/main/java/*.java
 //java -cp src/main/java Nary < text-ui-test/input.txt > text-ui-test/output.txt
+
+
+//create jar
+//javac -d out/production/nary src/main/java/nary/**/*.java
+//jar cfm Nary.jar manifest.txt -C out/production/nary .
+//java -jar "Nary.jar"
