@@ -4,13 +4,27 @@ import nary.task.*;
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ * Handles loading and saving tasks to a file.
+ * Provides persistence for the Nary chatbot.
+ */
 public class Storage {
     private final String filePath;
 
+    /**
+     * Creates a Storage instance that will read/write data to the specified file path.
+     *
+     * @param filePath The path of the file to store tasks.
+     */
     public Storage(String filePath) {
         this.filePath = filePath;
     }
 
+    /**
+     * Loads tasks from the file.
+     *
+     * @return A list of tasks read from the file. Returns an empty list if no file exists.
+     */
     public ArrayList<Task> load() {
         ArrayList<Task> tasks = new ArrayList<>();
         File file = new File(filePath);
@@ -48,6 +62,11 @@ public class Storage {
         return tasks;
     }
 
+    /**
+     * Saves the given list of tasks to the file.
+     *
+     * @param tasks The list of tasks to be saved.
+     */
     public void save(ArrayList<Task> tasks) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
             for (Task t : tasks) {

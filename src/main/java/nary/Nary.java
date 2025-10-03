@@ -10,11 +10,20 @@ import nary.storage.Storage;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * Main class for the Nary chatbot application.
+ * Handles user input, task management, and storage operations.
+ */
 public class Nary {
     private static final Storage storage = new Storage("data/nary.txt");
     private static ArrayList<Task> tasks = storage.load();
     private static final Scanner sc = new Scanner(System.in);
 
+    /**
+     * Program entry point.
+     *
+     * @param args Command line arguments (not used)
+     */
     public static void main(String[] args) {
         greet();
         while (true) {
@@ -22,6 +31,7 @@ public class Nary {
         }
     }
 
+    /** Prints the welcome message. */
     private static void greet() {
         printLine();
         System.out.println(" Hello! I'm Nary");
@@ -29,6 +39,11 @@ public class Nary {
         printLine();
     }
 
+    /**
+     * Handles user input and executes the corresponding commands.
+     *
+     * @param input The user input string
+     */
     private static void handleInput(String input) {
         try {
             if (input.equals("bye")) {
@@ -50,7 +65,7 @@ public class Nary {
                 if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
                     throw new NaryException("OOPS!!! The description or deadline date cannot be empty.");
                 }
-                addTask(new Deadline(parts[0].trim(), parts[1].trim())); // yyyy-MM-dd
+                addTask(new Deadline(parts[0].trim(), parts[1].trim())); // expects yyyy-MM-dd
             } else if (input.startsWith("event ")) {
                 String[] parts1 = input.substring(6).split(" /from ", 2);
                 if (parts1.length < 2) {
@@ -60,7 +75,7 @@ public class Nary {
                 if (parts2.length < 2) {
                     throw new NaryException("OOPS!!! Event must have both start and end dates.");
                 }
-                addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim())); // yyyy-MM-dd
+                addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim())); // expects yyyy-MM-dd
             } else if (input.startsWith("delete ")) {
                 deleteTask(input);
             } else if (input.startsWith("find ")) {
@@ -79,16 +94,27 @@ public class Nary {
         }
     }
 
+    /** Saves current task list to storage. */
     private static void saveTasks() {
         storage.save(tasks);
     }
 
+    /**
+     * Adds a task to the task list and saves it.
+     *
+     * @param t The task to add
+     */
     private static void addTask(Task t) {
         tasks.add(t);
         printAdded(t);
         saveTasks();
     }
 
+    /**
+     * Prints a message indicating the task was added.
+     *
+     * @param t The task that was added
+     */
     private static void printAdded(Task t) {
         printLine();
         System.out.println(" Got it. I've added this task:");
@@ -97,10 +123,12 @@ public class Nary {
         printLine();
     }
 
+    /** Prints all tasks in the task list. */
     private static void printTasks() {
         printLine();
-        if (tasks.isEmpty()) System.out.println(" No tasks yet!");
-        else {
+        if (tasks.isEmpty()) {
+            System.out.println(" No tasks yet!");
+        } else {
             System.out.println(" Here are the tasks in your list:");
             for (int i = 0; i < tasks.size(); i++) {
                 System.out.println(" " + (i + 1) + "." + tasks.get(i));
@@ -109,6 +137,11 @@ public class Nary {
         printLine();
     }
 
+    /**
+     * Marks a task as done based on user input.
+     *
+     * @param input The user input containing the index to mark
+     */
     private static void markTask(String input) {
         try {
             int index = Integer.parseInt(input.split(" ")[1]) - 1;
@@ -123,6 +156,11 @@ public class Nary {
         }
     }
 
+    /**
+     * Marks a task as not done based on user input.
+     *
+     * @param input The user input containing the index to unmark
+     */
     private static void unmarkTask(String input) {
         try {
             int index = Integer.parseInt(input.split(" ")[1]) - 1;
@@ -137,6 +175,11 @@ public class Nary {
         }
     }
 
+    /**
+     * Deletes a task based on user input.
+     *
+     * @param input The user input containing the index to delete
+     */
     private static void deleteTask(String input) {
         try {
             String[] parts = input.split(" ", 2);
@@ -162,11 +205,15 @@ public class Nary {
         }
     }
 
+    /**
+     * Finds tasks containing the specified keyword.
+     *
+     * @param keyword The keyword to search for
+     */
     private static void findTasks(String keyword) {
         printLine();
         ArrayList<Task> matches = new ArrayList<>();
-        for (int i = 0; i < tasks.size(); i++) {
-            Task t = tasks.get(i);
+        for (Task t : tasks) {
             if (t.getDescription().toLowerCase().contains(keyword.toLowerCase())) {
                 matches.add(t);
             }
@@ -182,26 +229,17 @@ public class Nary {
         printLine();
     }
 
+    /** Exits the program gracefully. */
     private static void exit() {
         printLine();
-        System.out.println(" Bye. Hope to see youu again soon!");
+        System.out.println(" Bye. Hope to see you again soon!");
         printLine();
         sc.close();
         System.exit(0);
     }
 
+    /** Prints a divider line. */
     private static void printLine() {
         System.out.println("____________________________________________________________");
     }
 }
-
-
-//cmd for I/O files:
-//javac src/main/java/*.java
-//java -cp src/main/java Nary < text-ui-test/input.txt > text-ui-test/output.txt
-
-
-//create jar
-//javac -d out/production/nary src/main/java/nary/**/*.java
-//jar cfm Nary.jar manifest.txt -C out/production/nary .
-//java -jar "Nary.jar"
