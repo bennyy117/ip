@@ -238,6 +238,7 @@ public class Nary {
         System.exit(0);
     }
 
+
     /** Prints a divider line. */
     private static void printLine() {
         System.out.println("____________________________________________________________");
