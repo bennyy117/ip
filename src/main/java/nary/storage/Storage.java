@@ -1,7 +1,13 @@
 package nary.storage;
 
-import nary.task.*;
-import java.io.*;
+import nary.parser.Parser;
+import nary.task.Task;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -37,24 +43,7 @@ public class Storage {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] parts = line.split(" - ");
-                switch (parts[0]) {
-                    case "T":
-                        Task todo = new Todo(parts[2]);
-                        if (parts[1].equals("X")) todo.markAsDone();
-                        tasks.add(todo);
-                        break;
-                    case "D":
-                        Task deadline = new Deadline(parts[2], parts[3]);
-                        if (parts[1].equals("X")) deadline.markAsDone();
-                        tasks.add(deadline);
-                        break;
-                    case "E":
-                        Task event = new Event(parts[2], parts[3], parts[4]);
-                        if (parts[1].equals("X")) event.markAsDone();
-                        tasks.add(event);
-                        break;
-                }
+                tasks.add(Parser.parseTask(line));
             }
         } catch (IOException e) {
             System.out.println("Error loading file: " + e.getMessage());
@@ -70,15 +59,7 @@ public class Storage {
     public void save(ArrayList<Task> tasks) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
             for (Task t : tasks) {
-                if (t instanceof Todo) {
-                    bw.write("T - " + (t.isDone ? "X" : "O") + " - " + t.description);
-                } else if (t instanceof Deadline) {
-                    Deadline d = (Deadline) t;
-                    bw.write("D - " + (d.isDone ? "X" : "O") + " - " + d.description + " - " + d.by);
-                } else if (t instanceof Event) {
-                    Event e = (Event) t;
-                    bw.write("E - " + (e.isDone ? "X" : "O") + " - " + e.description + " - " + e.from + " - " + e.to);
-                }
+                bw.write(Parser.formatTask(t));
                 bw.newLine();
             }
         } catch (IOException e) {

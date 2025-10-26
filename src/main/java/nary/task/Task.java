@@ -38,7 +38,9 @@ public class Task {
     }
 
     /** @return The description of this task. */
-    public String getDescription() { return this.description; }
+    public String getDescription() {
+        return this.description;
+    }
 
     /** @return A string representation of the task. */
     @Override

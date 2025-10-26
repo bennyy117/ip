@@ -28,6 +28,7 @@ It stores all your tasks in a text file (`data/nary.txt`) so your progress is ne
 - `deadline submit report /by 2025-10-10` : Adds a deadline task.
 - `event project meeting /from 2025-10-07 /to 2025-10-08` : Adds an event task.
 - `delete 3` : Deletes the 3rd task in the current list.
+- `help` : Displays the help guide.
 - `bye` : Exits Nary.
 
 6. Refer to the **Basic Features** section below for detailed usage of each command.
@@ -221,6 +222,16 @@ ____________________________________________________________
 
 ---
 
+### Displaying Help
+Shows a guide with all available commands, their format, and examples.
+
+**Format:**
+```
+help
+```
+
+---
+
 ### Exiting the Program
 Ends the session safely.
 
@@ -284,4 +295,5 @@ OOPS!!! The description of a todo cannot be empty.
 | `unmark TASK_NUMBER`                                  | Mark task as not done | `unmark 2` |
 | `delete TASK_NUMBER`                                  | Delete a task | `delete 3` |
 | `find KEYWORD`                                | Find matching tasks | `find project` |
+| `help`                                          | Display help guide | `help` |
 | `bye`                                           | Exit Nary | `bye` |

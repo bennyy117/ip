@@ -1,23 +1,24 @@
 package nary;
 
 import nary.exception.NaryException;
+import nary.storage.Storage;
 import nary.task.Deadline;
 import nary.task.Event;
 import nary.task.Task;
 import nary.task.Todo;
-import nary.storage.Storage;
+import nary.ui.UI;
 
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  * Main class for the Nary chatbot application.
  * Handles user input, task management, and storage operations.
  */
 public class Nary {
+
     private static final Storage storage = new Storage("data/nary.txt");
     private static ArrayList<Task> tasks = storage.load();
-    private static final Scanner sc = new Scanner(System.in);
+    private static final UI ui = new UI();
 
     /**
      * Program entry point.
@@ -25,18 +26,12 @@ public class Nary {
      * @param args Command line arguments (not used)
      */
     public static void main(String[] args) {
-        greet();
-        while (true) {
-            handleInput(sc.nextLine().trim());
-        }
-    }
+        ui.showWelcome();
 
-    /** Prints the welcome message. */
-    private static void greet() {
-        printLine();
-        System.out.println(" Hello! I'm Nary");
-        System.out.println(" What can I do for you?");
-        printLine();
+        while (true) {
+            String input = ui.readCommand().trim();
+            handleInput(input);
+        }
     }
 
     /**
@@ -55,49 +50,79 @@ public class Nary {
             } else if (input.startsWith("unmark ")) {
                 unmarkTask(input);
             } else if (input.startsWith("todo")) {
-                String desc = input.length() > 4 ? input.substring(5).trim() : "";
-                if (desc.isEmpty()) {
-                    throw new NaryException("OOPS!!! The description of a todo cannot be empty.");
-                }
-                addTask(new Todo(desc));
+                handleTodo(input);
             } else if (input.startsWith("deadline ")) {
-                String[] parts = input.substring(9).split(" /by ", 2);
-                if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-                    throw new NaryException("OOPS!!! The description or deadline date cannot be empty.");
-                }
-                addTask(new Deadline(parts[0].trim(), parts[1].trim())); // expects yyyy-MM-dd
+                handleDeadline(input);
             } else if (input.startsWith("event ")) {
-                String[] parts1 = input.substring(6).split(" /from ", 2);
-                if (parts1.length < 2) {
-                    throw new NaryException("OOPS!!! Event must have from and to dates.");
-                }
-                String[] parts2 = parts1[1].split(" /to ", 2);
-                if (parts2.length < 2) {
-                    throw new NaryException("OOPS!!! Event must have both start and end dates.");
-                }
-                addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim())); // expects yyyy-MM-dd
+                handleEvent(input);
             } else if (input.startsWith("delete ")) {
                 deleteTask(input);
             } else if (input.startsWith("find ")) {
-                String keyword = input.substring(5).trim();
-                if (keyword.isEmpty()) {
-                    throw new NaryException("OOPS!!! The keyword to find cannot be empty.");
-                }
-                findTasks(keyword);
+                findTasks(input.substring(5).trim());
+            } else if (input.equals("help")) {
+                showHelp();
             } else {
                 throw new NaryException("OOPS!!! I'm sorry, but I don't know what that means :-(");
             }
         } catch (NaryException e) {
-            System.out.println(e.getMessage());
+            ui.showMessage(e.getMessage());
         } catch (Exception e) {
-            System.out.println("Something went wrong! " + e.getMessage());
+            ui.showMessage("Something went wrong! " + e.getMessage());
         }
     }
 
-    /** Saves current task list to storage. */
-    private static void saveTasks() {
-        storage.save(tasks);
+    //================ Task Handlers ===================
+
+    /**
+     * Handles a todo command and adds a new Todo task.
+     *
+     * @param input The full user input
+     * @throws NaryException If the description is empty
+     */
+    private static void handleTodo(String input) throws NaryException {
+        String desc = input.length() > 4 ? input.substring(5).trim() : "";
+        if (desc.isEmpty()) {
+            throw new NaryException("OOPS!!! The description of a todo cannot be empty.");
+        }
+        addTask(new Todo(desc));
     }
+
+    /**
+     * Handles a deadline command and adds a new Deadline task.
+     *
+     * @param input The full user input
+     * @throws NaryException If the description or date is empty or extra details provided
+     */
+    private static void handleDeadline(String input) throws NaryException {
+        if (input.contains("/from") || input.contains("/to")) {
+            throw new NaryException("OOPS!!! More details than expected were input.");
+        }
+        String[] parts = input.substring(9).split(" /by ", 2);
+        if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
+            throw new NaryException("OOPS!!! The description or deadline date cannot be empty.");
+        }
+        addTask(new Deadline(parts[0].trim(), parts[1].trim()));
+    }
+
+    /**
+     * Handles an event command and adds a new Event task.
+     *
+     * @param input The full user input
+     * @throws NaryException If start or end dates are missing
+     */
+    private static void handleEvent(String input) throws NaryException {
+        String[] parts1 = input.substring(6).split(" /from ", 2);
+        if (parts1.length < 2) {
+            throw new NaryException("OOPS!!! Event must have from and to dates.");
+        }
+        String[] parts2 = parts1[1].split(" /to ", 2);
+        if (parts2.length < 2) {
+            throw new NaryException("OOPS!!! Event must have both start and end dates.");
+        }
+        addTask(new Event(parts1[0].trim(), parts2[0].trim(), parts2[1].trim()));
+    }
+
+    //================ Task Operations ===================
 
     /**
      * Adds a task to the task list and saves it.
@@ -111,30 +136,28 @@ public class Nary {
     }
 
     /**
-     * Prints a message indicating the task was added.
+     * Prints a message indicating a task was added.
      *
      * @param t The task that was added
      */
     private static void printAdded(Task t) {
-        printLine();
-        System.out.println(" Got it. I've added this task:");
-        System.out.println("   " + t);
-        System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
-        printLine();
+        ui.showMessage("Got it. I've added this task:\n   " + t
+                + "\nNow you have " + tasks.size() + " tasks in the list.");
     }
 
-    /** Prints all tasks in the task list. */
+    /**
+     * Prints all tasks in the task list.
+     */
     private static void printTasks() {
-        printLine();
         if (tasks.isEmpty()) {
-            System.out.println(" No tasks yet!");
+            ui.showMessage("No tasks yet!");
         } else {
-            System.out.println(" Here are the tasks in your list:");
+            StringBuilder sb = new StringBuilder("Here are the tasks in your list:\n");
             for (int i = 0; i < tasks.size(); i++) {
-                System.out.println(" " + (i + 1) + "." + tasks.get(i));
+                sb.append(" ").append(i + 1).append(".").append(tasks.get(i)).append("\n");
             }
+            ui.showMessage(sb.toString().trim());
         }
-        printLine();
     }
 
     /**
@@ -147,12 +170,9 @@ public class Nary {
             int index = Integer.parseInt(input.split(" ")[1]) - 1;
             tasks.get(index).markAsDone();
             saveTasks();
-            printLine();
-            System.out.println(" Nice! I've marked this task as done:");
-            System.out.println("   " + tasks.get(index));
-            printLine();
-        } catch (NumberFormatException | IndexOutOfBoundsException e) {
-            System.out.println(" Invalid index for mark command!");
+            ui.showMessage("Nice! I've marked this task as done:\n   " + tasks.get(index));
+        } catch (Exception e) {
+            ui.showMessage("Invalid index for mark command!");
         }
     }
 
@@ -166,12 +186,9 @@ public class Nary {
             int index = Integer.parseInt(input.split(" ")[1]) - 1;
             tasks.get(index).markAsNotDone();
             saveTasks();
-            printLine();
-            System.out.println(" OK, I've marked this task as not done yet:");
-            System.out.println("   " + tasks.get(index));
-            printLine();
-        } catch (NumberFormatException | IndexOutOfBoundsException e) {
-            System.out.println(" Invalid index for unmark command!");
+            ui.showMessage("OK, I've marked this task as not done yet:\n   " + tasks.get(index));
+        } catch (Exception e) {
+            ui.showMessage("Invalid index for unmark command!");
         }
     }
 
@@ -184,24 +201,20 @@ public class Nary {
         try {
             String[] parts = input.split(" ", 2);
             if (parts.length < 2 || parts[1].trim().isEmpty()) {
-                System.out.println(" Invalid command, please provide index to delete.");
+                ui.showMessage("Invalid command, please provide index to delete.");
                 return;
             }
             int idx = Integer.parseInt(parts[1].trim());
             if (idx <= 0 || idx > tasks.size()) {
-                System.out.println(" Invalid task: " + idx);
+                ui.showMessage("Invalid task: " + idx);
                 return;
             }
             Task removed = tasks.remove(idx - 1);
             saveTasks();
-            printLine();
-            System.out.println(" I've removed this task:");
-            System.out.println("   " + removed);
-            System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
-            printLine();
-
+            ui.showMessage("I've removed this task:\n   " + removed
+                    + "\nNow you have " + tasks.size() + " tasks in the list.");
         } catch (NumberFormatException e) {
-            System.out.println(" That isn't a valid number to delete.");
+            ui.showMessage("That isn't a valid number to delete.");
         }
     }
 
@@ -211,35 +224,82 @@ public class Nary {
      * @param keyword The keyword to search for
      */
     private static void findTasks(String keyword) {
-        printLine();
         ArrayList<Task> matches = new ArrayList<>();
         for (Task t : tasks) {
             if (t.getDescription().toLowerCase().contains(keyword.toLowerCase())) {
                 matches.add(t);
             }
         }
+
         if (matches.isEmpty()) {
-            System.out.println(" No matching tasks found!");
+            ui.showMessage("No matching tasks found!");
         } else {
-            System.out.println(" Here are the matching tasks in your list:");
+            StringBuilder sb = new StringBuilder("Here are the matching tasks in your list:\n");
             for (int i = 0; i < matches.size(); i++) {
-                System.out.println(" " + (i + 1) + "." + matches.get(i));
+                sb.append(" ").append(i + 1).append(".").append(matches.get(i)).append("\n");
             }
+            ui.showMessage(sb.toString().trim());
         }
-        printLine();
     }
 
-    /** Exits the program gracefully. */
+    //================ Storage ===================
+
+    /**
+     * Saves the current task list to storage.
+     */
+    private static void saveTasks() {
+        storage.save(tasks);
+    }
+
+    //================ Exit ===================
+
+    /**
+     * Exits the program gracefully.
+     */
     private static void exit() {
-        printLine();
-        System.out.println(" Bye. Hope to see you again soon!");
-        printLine();
-        sc.close();
+        ui.showExit();
+        ui.close();
         System.exit(0);
     }
 
-    /** Prints a divider line. */
-    private static void printLine() {
-        System.out.println("____________________________________________________________");
+    //================ Help ===================
+
+    /**
+     * Displays a summary of all available commands along with examples.
+     */
+    private static void showHelp() {
+        String helpMessage = ""
+                + "Nary Command Guide:\n"
+                + "1. todo TASK_NAME\n"
+                + "   - Add a todo task\n"
+                + "   Example: todo read book\n\n"
+                + "2. deadline TASK_NAME /by DATE\n"
+                + "   - Add a deadline task (DATE format: yyyy-MM-dd)\n"
+                + "   Example: deadline submit report /by 2025-10-10\n\n"
+                + "3. event TASK_NAME /from START_DATE /to END_DATE\n"
+                + "   - Add an event task (DATE format: yyyy-MM-dd)\n"
+                + "   Example: event project meeting /from 2025-10-07 /to 2025-10-08\n\n"
+                + "4. list\n"
+                + "   - Show all tasks\n"
+                + "   Example: list\n\n"
+                + "5. mark TASK_NUMBER\n"
+                + "   - Mark task as done\n"
+                + "   Example: mark 2\n\n"
+                + "6. unmark TASK_NUMBER\n"
+                + "   - Mark task as not done\n"
+                + "   Example: unmark 2\n\n"
+                + "7. delete TASK_NUMBER\n"
+                + "   - Delete a task\n"
+                + "   Example: delete 3\n\n"
+                + "8. find KEYWORD\n"
+                + "   - Search tasks by keyword\n"
+                + "   Example: find project\n\n"
+                + "9. help\n"
+                + "   - Show this help message\n"
+                + "   Example: help\n\n"
+                + "10. bye\n"
+                + "   - Exit the program\n"
+                + "   Example: bye\n";
+        ui.showMessage(helpMessage);
     }
 }
